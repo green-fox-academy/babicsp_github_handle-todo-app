@@ -1,58 +1,69 @@
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Integer.parseInt;
 
-public class Main {
+
+public class Main extends WriteLoadContent {
   public static void main(String[] args) {
 
 
-    String listname = "List.txt";
+    String PathOfTheToDoList = "List.txt";
 
-    if (args[0].equals("todo")) {
-      printUsage();
-    } else if (args[0].equals("-l")) {
-      loadInFiles(listname);
-    } else if (args[0].equals("-a")){
-      newToDoElement(listname, args[1]);
-    }
-  }
-
-  private static void newToDoElement(String b, String a) {
-    List<String> myList = putItToArraylist(b);
-    myList.add(a);
     try {
-      BufferedWriter writer = new BufferedWriter(new FileWriter("List.txt"));
-      for (int rows = 0; rows < myList.size(); rows++) {
-          writer.write(myList.get(rows));
-          writer.newLine();
+
+      if (args.length == 0) {
+        printUsage();
+      } else if (args[0].equals("todo")) {
+        printUsage();
+      } else if (args[0].equals("-l")) {
+        writeOutListElements(PathOfTheToDoList);
+      } else if (args[0].equals("-a")) {
+        if (args.length != 2) {
+          System.out.println("Unable to add: no task provided");
+        } else {
+          newToDoElement(PathOfTheToDoList, args[1]);
+        }
+      } else if (args[0].equals("-r")) {
+        deleteElement(PathOfTheToDoList, args[1]);
+      } else if (args[0].equals("-c")) {
+        if (args.length != 2) {
+          System.out.println("Unable to add: no task provided");
+        } else if (args.length < parseInt(args[1])) {
+          System.out.println("Unable to check: index is out of bound");
+        } else
+          checkIT(PathOfTheToDoList, args[1]);
+      } else {
+        System.out.println("Unsupported argument");
       }
-      writer.close();
-    } catch (Exception x){
-      System.out.println("Filewriter FAILED");
+    } catch (Exception x) {
+      System.out.println("Unable to check: index is not a number");
     }
-
   }
 
-  private static List<String> putItToArraylist(String a) {
-    List<String> myList = new ArrayList<>();
-    try {
-      Path path1 = Paths.get(a);
-      List<String> etwas = Files.readAllLines(path1);
-      myList = new ArrayList<>(etwas);
-    } catch (Exception wrongpath) {
-      System.out.println("WRONG PATH!!");
-    } return myList;
+  private static void checkIT(String listname, String arg) {
+    List<String> myList = WriteLoadContent.loadFile(listname);
+    myList.set(parseInt(arg) - 1,"[x] " + myList.get(parseInt(arg) - 1).substring(4));
+    WriteLoadContent.writeAFile(myList,listname);
+  }
+
+  private static void deleteElement(String listname, String a) {
+    List<String> myList = WriteLoadContent.loadFile(listname);
+    myList.remove(parseInt(a) - 1);
+    WriteLoadContent.writeAFile(myList,listname);
+  }
+
+  private static void newToDoElement(String listname, String a) {
+    List<String> myList = WriteLoadContent.loadFile(listname);
+    myList.add("[ ] " + a);
+    WriteLoadContent.writeAFile(myList,listname);
   }
 
 
-  private static List<String> loadInFiles(String a) {
-    List<String> myList = putItToArraylist(a);
+
+  private static List<String> writeOutListElements(String a) {
+    List<String> myList = WriteLoadContent.loadFile(a);
       if (myList.isEmpty()){
         System.out.println("No todos for today :-)");
       } else {
